@@ -1,0 +1,52 @@
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #f2f4f7;
+}
+
+.sidebar {
+  width: 230px;
+  background: #1e1e2d;
+  height: 100vh;
+  position: fixed;
+  padding-top: 30px;
+  color: white;
+}
+
+.sidebar h2 {
+  text-align: center;
+}
+
+.sidebar a {
+  display: block;
+  padding: 15px;
+  color: #bbb;
+  text-decoration: none;
+  margin-top: 5px;
+}
+
+.sidebar a:hover {
+  background: #34344a;
+  color: white;
+}
+
+.content {
+  margin-left: 250px;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.btn {
+  padding: 10px 14px;
+  background:#1e1e2d;
+  color:white;
+  border-radius:6px;
+  cursor:pointer;
+}

@@ -1,0 +1,731 @@
+Admin 
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="utf-8">
+  <title>Admin Dashboard — Task Manager</title>
+  <style>
+    tbody td {
+  color: #e5e7eb;
+}
+canvas {
+  max-width: 420px;
+  margin: auto;
+  display: block;
+  animation: fadeUp .5s ease;
+}
+    body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f172a;}
+    .shell{display:flex;min-height:100vh;background:linear-gradient(135deg,#020617,#020617);}
+    .side{width:260px;background:#020617;color:#e5e7eb;padding:24px 18px;display:flex;flex-direction:column;border-right:1px solid rgba(30,64,175,0.45);}
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+    .avatar{width:34px;height:34px;border-radius:50%;background:conic-gradient(from 160deg,#2563eb,#a855f7,#22c55e,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:700;}
+    .brand-text{font-weight:600;font-size:18px;}
+    .brand-sub{font-size:12px;color:#9ca3af;}
+    .nav{margin-top:18px;display:flex;flex-direction:column;gap:4px;font-size:14px;}
+    .nav a{padding:9px 11px;border-radius:10px;color:#cbd5f5;text-decoration:none;cursor:pointer;}
+    .nav a.active,.nav a:hover{background:rgba(37,99,235,0.35);color:#fff;}
+    .side-footer{margin-top:auto;font-size:11px;color:#6b7280;padding-top:16px;border-top:1px solid rgba(30,64,175,0.45);}
+    .main{flex:1;padding:26px 30px;background:radial-gradient(circle at top,#1d283a 0,#020617 50%);color:#e5e7eb;overflow:auto;}
+    .toprow{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+    .title{font-size:26px;font-weight:700;}
+    .subtitle{font-size:13px;color:#9ca3af;margin-top:4px;}
+    .controls{display:flex;gap:10px;align-items:center;}
+    .search{padding:8px 11px;border-radius:999px;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.9);color:#e5e7eb;min-width:260px;font-size:13px;}
+    .btn{border:none;border-radius:999px;padding:8px 14px;background:#2563eb;color:white;font-size:13px;cursor:pointer;}
+    .btn-outline{background:transparent;border:1px solid rgba(148,163,184,0.7);}
+    .surface {
+  backdrop-filter: blur(10px);
+  background: rgba(15,23,42,0.95);
+  border-radius: 18px;
+  padding: 18px 20px;
+  margin-top: 18px;
+  box-shadow: 0 20px 45px rgba(15,23,42,0.8);
+  animation: fadeUp .35s ease-out;
+}
+    .cards-grid{display:grid;gap:16px;margin-top:10px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+    .task-card{background:linear-gradient(135deg,#020617,#1d3557);border-radius:16px;padding:16px 18px;border:1px solid rgba(148,163,184,0.4);box-shadow:0 18px 38px rgba(15,23,42,0.85);transition:transform .15s, box-shadow .15s;}
+    .task-card:hover{transform:translateY(-3px);box-shadow:0 26px 55px rgba(15,23,42,0.95);}
+    .task-card h3{margin:0 0 6px 0;font-size:17px;}
+    .muted{color:#9ca3af;font-size:13px;}
+    .meta{font-size:12px;margin-top:6px;}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;margin-top:6px;}
+    .status-pending{background:rgba(234,179,8,0.16);color:#facc15;}
+    .status-completed{background:rgba(34,197,94,0.18);color:#4ade80;}
+    .status-delayed{background:rgba(239,68,68,0.18);color:#fb7185;}
+    .label{font-size:13px;margin-top:10px;margin-bottom:4px;color:#e5e7eb;}
+    .input,textarea{width:100%;padding:9px 10px;border-radius:10px;border:1px solid rgba(148,163,184,0.45);background:#020617;color:#e5e7eb;font-size:13px;}
+    textarea{resize:vertical;min-height:80px;}
+    .empty{padding:24px;border-radius:14px;background:rgba(15,23,42,0.9);text-align:center;color:#9ca3af;font-size:13px;}
+    .chipbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;background:rgba(37,99,235,0.22);font-size:12px;}
+    .chip button{border:none;background:transparent;color:#9ca3af;cursor:pointer;padding:0;font-size:12px;}
+    .suggest-box{margin-top:6px;border-radius:10px;background:#020617;border:1px solid rgba(148,163,184,0.45);max-height:140px;overflow-y:auto;display:none;}
+    .suggest-item{padding:6px 10px;font-size:13px;cursor:pointer;}
+    .suggest-item:hover{background:rgba(37,99,235,0.35);}
+    .btn-small{padding:6px 10px;font-size:11px;border-radius:999px;border:none;cursor:pointer;}
+    .btn-danger{background:#ef4444;color:white;}
+    .btn-ghost{background:transparent;border:1px solid rgba(148,163,184,0.6);color:#e5e7eb;}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(1,3,9,0.6);display:flex;align-items:center;justify-content:center;z-index:999;display:none;}
+    .modal{background:#fff;color:#111;border-radius:10px;padding:18px;width:420px;box-shadow:0 20px 50px rgba(2,6,23,0.7);}
+    .modal h4{margin:0 0 8px 0;font-size:16px;}
+    .modal p{margin:0 0 12px 0;color:#444;font-size:14px;}
+    .modal .row{display:flex;justify-content:flex-end;gap:10px;margin-top:12px;}
+    .modal .btn{border-radius:8px;padding:8px 12px;border:none;cursor:pointer;font-size:13px;}
+    .modal .btn.cancel{background:transparent;border:1px solid #ddd;color:#333;}
+    .modal .btn.ok{background:#ef4444;color:#fff;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <div class="avatar">A</div>
+      <div>
+        <div class="brand-text">Admin Panel</div>
+        <div class="brand-sub">Task Manager</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a id="navDashboard">Dashboard</a>
+      <a id="navUsers" class="active">View Users</a>
+      <a id="navTasks">View All Tasks</a>
+      <a id="navCreate">Create Task</a>
+      <a onclick="logout()">Logout</a>
+    </nav>
+
+    <div class="side-footer">
+      Logged in as <strong>Admin</strong><br>
+      <span id="adminEmail">admin</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="toprow">
+      <div>
+        <div class="title" id="pageTitle">Users</div>
+        <div class="subtitle" id="pageSubtitle">View all registered users and promote admins.</div>
+      </div>
+      <div class="controls">
+        <input id="searchBox" class="search" placeholder="Search users or tasks…">
+        <button class="btn btn-outline" onclick="refreshView()">Refresh</button>
+      </div>
+    </div>
+
+    <div id="mainArea"></div>
+  </main>
+</div>
+
+<!-- Delete task modal -->
+<div id="modalBackdrop" class="modal-backdrop">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h4>Delete task</h4>
+    <p>Are you sure you want to delete this task?</p>
+    <div class="row">
+      <button class="btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn ok" onclick="confirmModalOk()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit user modal -->
+<div id="userModalBackdrop" class="modal-backdrop">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h4>Edit user</h4>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div>
+        <label style="font-size:13px;">Name</label>
+        <input id="editUserName" style="width:100%;padding:6px 8px;border-radius:7px;border:1px solid #ddd;">
+      </div>
+      <div>
+        <label style="font-size:13px;">Email</label>
+        <input id="editUserEmail" style="width:100%;padding:6px 8px;border-radius:7px;border:1px solid #ddd;">
+      </div>
+      <div>
+        <label style="font-size:13px;">New Password (optional)</label>
+        <input id="editUserPassword" type="password" style="width:100%;padding:6px 8px;border-radius:7px;border:1px solid #ddd;">
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn cancel" onclick="closeUserModal()">Cancel</button>
+      <button class="btn ok" onclick="saveUserEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+const role  = localStorage.getItem('role');
+if (!token || role !== 'admin') {
+  window.location.href = 'login.html';
+}
+document.getElementById('adminEmail').innerText = 'admin';
+
+let allUsers = [];
+let allTasks = [];
+let toDeleteTaskId = null;
+let createAssignees = [];
+let editAssignees = [];
+let editingUserId = null;
+
+function logout(){ localStorage.clear(); window.location.href='login.html'; }
+
+const navUsers = document.getElementById('navUsers');
+const navTasks = document.getElementById('navTasks');
+const navCreate = document.getElementById('navCreate');
+const mainArea = document.getElementById('mainArea');
+const pageTitle = document.getElementById('pageTitle');
+const pageSubtitle = document.getElementById('pageSubtitle');
+const searchBox = document.getElementById('searchBox');
+const navDashboard = document.getElementById('navDashboard');
+const controlsBar = document.querySelector('.controls');
+
+navDashboard.onclick = e=>{
+  e.preventDefault();
+  setActive('navDashboard');
+  showDashboard();
+};
+
+navUsers.onclick = e=>{e.preventDefault(); setActive('navUsers'); showUsers();};
+navTasks.onclick = e=>{e.preventDefault(); setActive('navTasks'); showTasks();};
+navCreate.onclick = e=>{e.preventDefault(); setActive('navCreate'); showCreateForm();};
+
+searchBox.addEventListener('input', ()=>{
+  const active = document.querySelector('.nav a.active');
+  if(active.id === 'navUsers') showUsers();
+  if(active.id === 'navTasks') showTasks();
+});
+
+function setActive(id){
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function refreshView(){
+  const active = document.querySelector('.nav a.active');
+  if(active.id==='navUsers') loadUsers(true).then(showUsers);
+  if(active.id==='navTasks') loadTasks(true).then(showTasks);
+}
+
+async function loadUsers(force=false){
+  if(allUsers.length && !force) return;
+  const res = await fetch('http://localhost:5001/auth/users');
+  allUsers = await res.json();
+}
+
+async function loadTasks(force=false){
+  if(allTasks.length && !force) return;
+  const res = await fetch('http://localhost:5001/tasks/all', {
+    headers:{'Authorization':token}
+  });
+  allTasks = await res.json();
+}
+
+/* chips + search helpers */
+function renderChips(containerId, list){
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = "";
+  list.forEach(u=>{
+    const span = document.createElement("span");
+    span.className = "chip";
+    span.innerHTML = `${u.name || u.email}<button onclick="removeChip('${containerId}','${u._id}')">✕</button>`;
+    el.appendChild(span);
+  });
+}
+
+function removeChip(containerId, userId){
+  if (containerId === "createAssigneeChips") {
+    createAssignees = createAssignees.filter(u => u._id !== userId);
+    renderChips(containerId, createAssignees);
+  } else {
+    editAssignees = editAssignees.filter(u => u._id !== userId);
+    renderChips(containerId, editAssignees);
+  }
+}
+
+function setupAssigneeSearch(inputId, suggestId, chipsId, isEdit){
+  const input = document.getElementById(inputId);
+  const box   = document.getElementById(suggestId);
+  if (!input || !box) return;
+
+  input.oninput = () => {
+    const q = input.value.trim().toLowerCase();
+    box.innerHTML = "";
+    if (!q) { box.style.display = "none"; return; }
+
+    const current = isEdit ? editAssignees : createAssignees;
+    const usedIds = new Set(current.map(u => u._id));
+    const matches = allUsers.filter(u =>
+      !usedIds.has(u._id) &&
+      (u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
+    ).slice(0, 8);
+
+    if (!matches.length) { box.style.display = "none"; return; }
+
+    matches.forEach(u=>{
+      const div = document.createElement("div");
+      div.className = "suggest-item";
+      div.textContent = `${u.name} (${u.email})`;
+      div.onclick = () => {
+        if (isEdit) {
+          editAssignees.push(u);
+          renderChips(chipsId, editAssignees);
+        } else {
+          createAssignees.push(u);
+          renderChips(chipsId, createAssignees);
+        }
+        input.value = "";
+        box.innerHTML = "";
+        box.style.display = "none";
+      };
+      box.appendChild(div);
+    });
+    box.style.display = "block";
+  };
+}
+
+/* USERS VIEW */
+async function showUsers(){
+  searchBox.style.display = 'block';
+  controlsBar.style.display = 'flex';
+  pageTitle.innerText = 'Users';
+  pageSubtitle.innerText = 'View all registered users and promote admins.';
+  mainArea.innerHTML = `<div class="surface">Loading users…</div>`;
+  await loadUsers();
+  const q = (searchBox.value || '').toLowerCase();
+
+  const filtered = allUsers.filter(u =>
+    u.name.toLowerCase().includes(q) ||
+    u.email.toLowerCase().includes(q)
+  );
+
+  let html = `
+    <div class="surface">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="color:#9ca3af;">
+            <th style="padding:8px 4px;text-align:left;">Name</th>
+            <th style="padding:8px 4px;text-align:left;">Email</th>
+            <th style="padding:8px 4px;text-align:left;">Role</th>
+            <th style="padding:8px 4px;text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="usersBody"></tbody>
+      </table>
+    </div>
+  `;
+  mainArea.innerHTML = html;
+
+  const tbody = document.getElementById('usersBody');
+  filtered.forEach(u=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="padding:8px 4px;">${u.name}</td>
+      <td style="padding:8px 4px;color:#9ca3af;">${u.email}</td>
+      <td style="padding:8px 4px;">${u.role}</td>
+      <td style="padding:8px 4px;text-align:right;">
+        <button class="btn btn-outline" style="font-size:11px;padding:5px 10px;margin-right:6px;" onclick="openEditUser('${u._id}')">Edit</button>
+        ${u.role !== 'admin'
+          ? `<button class="btn btn-outline" style="font-size:11px;padding:5px 10px;" onclick="makeAdmin('${u._id}')">Make Admin</button>`
+          : `<span class="badge status-completed">Admin</span>`}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  if(!filtered.length){
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:18px 4px;color:#9ca3af;">No users found.</td></tr>`;
+  }
+}
+
+async function makeAdmin(id){
+  if(!confirm('Make this user an admin?')) return;
+  const res = await fetch('http://localhost:5001/auth/make-admin', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':token},
+    body:JSON.stringify({id})
+  });
+  if(res.ok){ await loadUsers(true); showUsers(); } else alert('Failed to update');
+}
+
+/* USER EDIT MODAL */
+function openEditUser(id){
+  const u = allUsers.find(x => x._id === id);
+  if (!u) return;
+  editingUserId = id;
+  document.getElementById("editUserName").value = u.name || "";
+  document.getElementById("editUserEmail").value = u.email || "";
+  document.getElementById("editUserPassword").value = "";
+  document.getElementById("userModalBackdrop").style.display = "flex";
+}
+function closeUserModal(){
+  editingUserId = null;
+  document.getElementById("userModalBackdrop").style.display = "none";
+}
+async function saveUserEdit(){
+  if (!editingUserId) return closeUserModal();
+  const name = document.getElementById("editUserName").value.trim();
+  const email = document.getElementById("editUserEmail").value.trim();
+  const password = document.getElementById("editUserPassword").value;
+  const body = { name, email };
+  if (password && password.trim()) body.password = password;
+
+  const res = await fetch("http://localhost:5001/auth/users/" + editingUserId, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "Authorization": token },
+    body: JSON.stringify(body)
+  });
+
+  if (res.ok) {
+    alert("User updated");
+    closeUserModal();
+    await loadUsers(true);
+    showUsers();
+  } else {
+    alert("Failed to update user");
+  }
+}
+
+/* TASKS VIEW */
+function formatDate(dStr){ if(!dStr) return 'No deadline'; const d = new Date(dStr); if(isNaN(d.getTime())) return 'No deadline'; return d.toLocaleDateString(); }
+
+async function showTasks(){
+  searchBox.style.display = 'block';
+  controlsBar.style.display = 'flex'; 
+  pageTitle.innerText = 'All Tasks';
+  pageSubtitle.innerText = 'Monitor task progress across the team.';
+  mainArea.innerHTML = `<div class="surface">Loading tasks…</div>`;
+  await loadTasks(true);
+  await loadUsers();
+
+  const q = (searchBox.value || '').toLowerCase();
+  const filtered = allTasks.filter(t => {
+    const who = (t.assignedTo || []).map(a => (a.name||'') + (a.email?(' ' + a.email):'')).join(' ');
+    return t.title.toLowerCase().includes(q) ||
+           (t.description || '').toLowerCase().includes(q) ||
+           who.toLowerCase().includes(q);
+  });
+
+  if(!filtered.length){
+    mainArea.innerHTML = `<div class="surface empty">No tasks match your search.</div>`;
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'surface cards-grid';
+  mainArea.innerHTML = '';
+  mainArea.appendChild(grid);
+
+  filtered.forEach(t=>{
+    const card = document.createElement('div');
+    card.className = 'task-card';
+
+    const statusClass =
+      t.status === 'completed' ? 'status-completed' :
+      t.status === 'delayed' ? 'status-delayed' : 'status-pending';
+
+    const assignedNames = (t.assignedTo || []).map(a => a.name || a.email || '').join(', ');
+
+    card.innerHTML = `
+      <h3>${t.title}</h3>
+      <div class="muted">${t.description || ''}</div>
+      <div class="meta">
+        Assigned to: <strong>${assignedNames || '—'}</strong><br>
+        By: <span class="muted">${t.assignedBy ? t.assignedBy.name : 'Admin'}</span><br>
+        Deadline: <span class="muted">${formatDate(t.deadline)}</span>
+      </div>
+      <div class="badge ${statusClass}">
+        <span style="width:8px;height:8px;border-radius:50%;background:currentColor;"></span>
+        ${t.status}
+      </div>
+      <div class="meta">Remark: <span class="muted">${t.remark || '-'}</span></div>
+      <div class="chipbar">
+        <button class="btn-small btn-ghost" onclick="openEditTask('${t._id}')">Edit</button>
+        <button class="btn-small btn-danger" onclick="openDeleteModal('${t._id}')">Delete</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+/* CREATE TASK (search + chips) */
+async function showCreateForm(){
+  pageTitle.innerText = 'Create Task';
+  pageSubtitle.innerText = 'Assign new work items to your team.';
+  await loadUsers();
+
+  createAssignees = [];
+
+  mainArea.innerHTML = `
+    <div class="surface">
+      <div class="label">Title</div>
+      <input id="t_title" class="input" placeholder="Task title">
+
+      <div class="label">Description</div>
+      <textarea id="t_desc" class="input" placeholder="Short description"></textarea>
+
+      <div class="label">Assign To</div>
+      <input id="assigneeSearch" class="input" placeholder="Search user by name or email">
+      <div id="assigneeSuggestions" class="suggest-box"></div>
+
+      <div class="label" style="margin-top:10px;">Selected users</div>
+      <div id="createAssigneeChips" class="chipbar"></div>
+
+      <div class="label">Deadline</div>
+      <input id="t_deadline" class="input" type="date">
+
+      <button class="btn" style="margin-top:14px;" onclick="createTask()">Create Task</button>
+    </div>
+  `;
+
+  setupAssigneeSearch("assigneeSearch","assigneeSuggestions","createAssigneeChips", false);
+}
+
+async function createTask(){
+  const title = document.getElementById('t_title').value.trim();
+  const description = document.getElementById('t_desc').value.trim();
+  const deadline = document.getElementById('t_deadline').value;
+  const assignedTo = createAssignees.map(u => u._id);
+
+  if(!title || !assignedTo.length){
+    alert('Title and at least one user required');
+    return;
+  }
+
+  const res = await fetch('http://localhost:5001/tasks/create', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':token},
+    body:JSON.stringify({ title, description, assignedTo, deadline })
+  });
+
+  const data = await res.json().catch(()=>({}));
+
+  if(res.ok){
+    alert('Task created');
+    await loadTasks(true);
+    showTasks();
+  } else {
+    alert(data.message || 'Server error');
+  }
+}
+
+/* EDIT TASK */
+function openEditTask(taskId){
+  const t = allTasks.find(x=>x._id === taskId);
+  if(!t){ alert('Task not found'); return; }
+
+  pageTitle.innerText = 'Edit Task';
+  pageSubtitle.innerText = 'Modify task details, assignees, status and deadline.';
+
+  const dFormatted = t.deadline ? new Date(t.deadline).toISOString().slice(0,10) : '';
+  editAssignees = (t.assignedTo || []).slice();
+
+  mainArea.innerHTML = `
+    <div class="surface">
+      <input type="hidden" id="edit_id" value="${t._id}">
+
+      <div class="label">Title</div>
+      <input id="edit_title" class="input" value="${t.title}">
+
+      <div class="label">Description</div>
+      <textarea id="edit_desc" class="input">${t.description || ''}</textarea>
+
+      <div class="label">Assignees</div>
+      <input id="editAssigneeSearch" class="input" placeholder="Search user by name or email">
+      <div id="editAssigneeSuggestions" class="suggest-box"></div>
+      <div class="label" style="margin-top:10px;">Selected users</div>
+      <div id="editAssigneeChips" class="chipbar"></div>
+
+      <div class="label">Status</div>
+      <select id="edit_status" class="input">
+        <option value="pending" ${t.status==='pending'?'selected':''}>Pending</option>
+        <option value="completed" ${t.status==='completed'?'selected':''}>Completed</option>
+        <option value="delayed" ${t.status==='delayed'?'selected':''}>Delayed</option>
+      </select>
+
+      <div class="label">Deadline</div>
+      <input id="edit_deadline" class="input" type="date" value="${dFormatted}">
+
+      <div class="chipbar" style="margin-top:14px;">
+        <button class="btn" onclick="saveEditTask()">Save Changes</button>
+        <button class="btn-small btn-ghost" type="button" onclick="showTasks()">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  renderChips("editAssigneeChips", editAssignees);
+  setupAssigneeSearch("editAssigneeSearch","editAssigneeSuggestions","editAssigneeChips", true);
+}
+
+async function saveEditTask(){
+  const taskId = document.getElementById('edit_id').value;
+  const title = document.getElementById('edit_title').value.trim();
+  const description = document.getElementById('edit_desc').value.trim();
+  const status = document.getElementById('edit_status').value;
+  const deadline = document.getElementById('edit_deadline').value;
+  const assignedTo = editAssignees.map(u => u._id);
+
+  if(!title || !assignedTo.length){
+    alert('Title and at least one assignee required');
+    return;
+  }
+
+  const res = await fetch('http://localhost:5001/tasks/admin-update', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':token},
+    body:JSON.stringify({ taskId, title, description, assignedTo, status, deadline })
+  });
+
+  const data = await res.json().catch(()=>({}));
+
+  if(res.ok){
+    alert('Task updated');
+    await loadTasks(true);
+    showTasks();
+  } else {
+    alert(data.message || 'Failed to update task');
+  }
+}
+
+/* DELETE TASK MODAL */
+function openDeleteModal(taskId){
+  toDeleteTaskId = taskId;
+  document.getElementById('modalBackdrop').style.display = 'flex';
+}
+function closeModal(){
+  toDeleteTaskId = null;
+  document.getElementById('modalBackdrop').style.display = 'none';
+}
+async function confirmModalOk(){
+  if(!toDeleteTaskId) return closeModal();
+  const res = await fetch('http://localhost:5001/tasks/delete/'+toDeleteTaskId, {
+    method:'DELETE',
+    headers:{'Authorization':token}
+  });
+  closeModal();
+  if(res.ok){
+    allTasks = allTasks.filter(t=>t._id !== toDeleteTaskId);
+    showTasks();
+  } else {
+    alert('Failed to delete');
+  }
+}
+async function showDashboard(){
+
+  searchBox.style.display = 'none'; // ✅ ADD THIS
+  controlsBar.style.display = 'none';
+
+  pageTitle.innerText = 'Dashboard';
+  pageTitle.innerText = 'Dashboard';
+  pageSubtitle.innerText = 'Overview of system activity';
+
+  await loadUsers();
+  await loadTasks(true);
+
+  const totalUsers = allUsers.length;
+  const totalTasks = allTasks.length;
+  const completed = allTasks.filter(t=>t.status==='completed').length;
+  const pending = allTasks.filter(t=>t.status==='pending').length;
+  const delayed = allTasks.filter(t=>t.status==='delayed').length;
+
+  mainArea.innerHTML = `<div class="surface" style="margin-top:20px;">
+  <canvas id="barChart" height="120"></canvas>
+</div>
+<div class="surface" style="margin-top:20px;">
+  <h3 style="margin-bottom:10px;">Upcoming Deadlines</h3>
+  <div id="calendarList"></div>
+</div>
+  <div class="surface cards-grid">
+    <div class="task-card"><h3>Users</h3><p>${totalUsers}</p></div>
+    <div class="task-card"><h3>Total Tasks</h3><p>${totalTasks}</p></div>
+    <div class="task-card"><h3>Completed</h3><p>${completed}</p></div>
+    <div class="task-card"><h3>Pending</h3><p>${pending}</p></div>
+    <div class="task-card"><h3>Delayed</h3><p>${delayed}</p></div>
+  </div>
+
+  <div class="surface" style="margin-top:20px;">
+    <canvas id="taskChart" height="120"></canvas>
+  </div>
+`;
+const calendarList = document.getElementById('calendarList');
+
+const upcoming = allTasks
+  .filter(t => t.deadline)
+  .sort((a,b)=> new Date(a.deadline) - new Date(b.deadline))
+  .slice(0,5);
+
+calendarList.innerHTML = upcoming.map(t => `
+  <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+    <strong>${t.title}</strong><br>
+    <span style="color:#9ca3af;font-size:12px;">
+      ${new Date(t.deadline).toLocaleDateString()}
+    </span>
+  </div>
+`).join('');
+setTimeout(() => {
+  const canvas = document.getElementById('taskChart');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Completed', 'Pending', 'Delayed'],
+      datasets: [{
+        data: [completed, pending, delayed],
+        backgroundColor: ['#22c55e','#eab308','#ef4444'],
+        borderWidth: 0
+      }]
+    }
+  });
+}, 200);
+const barCtx = document.getElementById('barChart');
+
+new Chart(barCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    datasets: [{
+      label: 'Tasks Completed',
+      data: [
+        completed,
+        pending,
+        completed,
+        delayed,
+        completed,
+        pending,
+        completed
+      ],
+      borderRadius: 8
+    }]
+  },
+  options: {
+    plugins: {
+      legend: {
+        labels: { color: '#e5e7eb' }
+      }
+    },
+    scales: {
+      x: { ticks: { color: '#9ca3af' } },
+      y: { ticks: { color: '#9ca3af' } }
+    },
+    animation: {
+      duration: 1200
+    }
+  }
+});
+
+}
+
+
+/* initial load */
+loadUsers().then(()=>{ loadTasks(true).then(()=>{ setActive('navTasks'); showTasks(); }); });
+</script>
+</body>
+</html>

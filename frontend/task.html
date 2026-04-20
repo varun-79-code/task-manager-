@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>My Tasks — Task Manager</title>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f172a;}
+    .wrap{min-height:100vh;background:radial-gradient(circle at top,#1d283a 0,#020617 60%);color:#e5e7eb;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;}
+    .inner{width:100%;max-width:900px;}
+    .toprow{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+    .title{font-size:28px;font-weight:700;}
+    .btn{border:none;border-radius:999px;padding:8px 14px;background:#ef4444;color:white;font-size:13px;cursor:pointer;}
+    .surface{background:rgba(15,23,42,0.95);border-radius:18px;padding:20px 22px;box-shadow:0 24px 55px rgba(15,23,42,0.85);animation:fadeUp .35s ease-out;}
+    .card{background:linear-gradient(135deg,#020617,#111827);border-radius:16px;padding:16px 18px;margin-bottom:14px;border:1px solid rgba(148,163,184,0.35);box-shadow:0 18px 30px rgba(15,23,42,0.8);transition:transform .15s, box-shadow .15s;}
+    .card:hover{transform:translateY(-3px);box-shadow:0 26px 45px rgba(15,23,42,1);}
+    .card h3{margin:0 0 6px 0;font-size:18px;}
+    .muted{color:#9ca3af;font-size:13px;}
+    .meta{font-size:12px;margin-top:8px;color:#e5e7eb;}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;margin-top:6px;}
+    .status-pending{background:rgba(234,179,8,0.16);color:#facc15;}
+    .status-completed{background:rgba(34,197,94,0.18);color:#4ade80;}
+    .status-delayed{background:rgba(239,68,68,0.18);color:#fb7185;}
+    select,input{width:100%;padding:8px 10px;border-radius:10px;border:1px solid rgba(148,163,184,0.5);background:#020617;color:#e5e7eb;font-size:13px;margin-top:8px;}
+    .btn-sm{margin-top:8px;background:#2563eb;}
+    .empty{padding:30px;border-radius:14px;background:rgba(15,23,42,0.9);text-align:center;color:#9ca3af;font-size:14px;}
+    .deadline-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:#9ca3af;}
+    .progress-outer{width:100%;height:7px;border-radius:999px;background:rgba(15,23,42,0.9);margin-top:6px;overflow:hidden;}
+    .progress-inner{height:100%;border-radius:999px;transition:width .25s ease-out;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="inner">
+    <div class="toprow">
+      <div class="title">My Tasks</div>
+      <button class="btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div id="container" class="surface">
+      <div id="statusText" class="muted">Loading tasks…</div>
+      <div id="tasksArea"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if(!token) window.location.href='login.html';
+
+function logout(){
+  localStorage.clear();
+  window.location.href='login.html';
+}
+
+function formatDate(dStr){
+  if(!dStr) return 'No deadline set';
+  const d = new Date(dStr);
+  if(isNaN(d.getTime())) return 'No deadline set';
+  return d.toLocaleDateString();
+}
+
+function computeProgress(createdAt, deadline){
+  if(!deadline) return {percent:0, color:'#22c55e', label:'No deadline'};
+  const start = new Date(createdAt).getTime();
+  const end   = new Date(deadline).getTime();
+  const now   = Date.now();
+  if(isNaN(start) || isNaN(end) || end <= start) return {percent:100,color:'#22c55e',label:'Due'};
+  let pct = Math.round(((now - start) / (end - start)) * 100);
+  pct = Math.max(0, Math.min(100, pct));
+  let color = '#22c55e';
+  if (pct >= 60 && pct < 90) color = '#eab308';
+  if (pct >= 90) color = '#ef4444';
+  if (now > end) { pct = 100; color = '#ef4444'; }
+  return {percent:pct, color, label:`${pct}% time passed`};
+}
+
+async function loadTasks(){
+  const statusEl = document.getElementById('statusText');
+  const area = document.getElementById('tasksArea');
+  area.innerHTML = '';
+  statusEl.innerText = 'Loading tasks…';
+
+  const res = await fetch('http://localhost:5001/tasks/mytasks', {
+    headers:{'Authorization':token}
+  });
+
+  if(!res.ok){
+    statusEl.innerText = 'Failed to load tasks. Please login again.';
+    if(res.status===401 || res.status===403){
+      localStorage.clear();
+      setTimeout(()=>window.location.href='login.html',1000);
+    }
+    return;
+  }
+
+  const tasks = await res.json();
+  if(!tasks.length){
+    statusEl.innerHTML = '';
+    area.innerHTML = `<div class="empty">No tasks assigned yet. Wait for admin to assign tasks.</div>`;
+    return;
+  }
+
+  statusEl.innerHTML = '';
+  tasks.forEach(t=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const statusClass =
+      t.status === 'completed' ? 'status-completed' :
+      t.status === 'delayed' ? 'status-delayed' : 'status-pending';
+
+    const prog = computeProgress(t.createdAt, t.deadline);
+
+    card.innerHTML = `
+      <h3>${t.title}</h3>
+      <div class="muted">${t.description || ''}</div>
+      <div class="meta">Remark: <span class="muted">${t.remark || '-'}</span></div>
+
+      <div class="badge ${statusClass}">
+        <span style="width:8px;height:8px;border-radius:50%;background:currentColor;"></span>
+        ${t.status}
+      </div>
+
+      <div class="deadline-row">
+        <span>Deadline: ${formatDate(t.deadline)}</span>
+        <span>${prog.label}</span>
+      </div>
+      <div class="progress-outer">
+        <div class="progress-inner" style="width:${prog.percent}%;background:${prog.color};"></div>
+      </div>
+
+      <label class="muted" style="display:block;margin-top:10px;font-size:12px;">Update status</label>
+      <select id="status_${t._id}">
+        <option value="pending" ${t.status==='pending'?'selected':''}>Pending</option>
+        <option value="completed" ${t.status==='completed'?'selected':''}>Completed</option>
+        <option value="delayed" ${t.status==='delayed'?'selected':''}>Delayed</option>
+      </select>
+
+      <input id="remark_${t._id}" placeholder="Add / update remark…" value="${t.remark || ''}"/>
+
+      <button class="btn btn-sm" onclick="updateTask('${t._id}')">Save</button>
+    `;
+    area.appendChild(card);
+  });
+}
+
+async function updateTask(id){
+  const status = document.getElementById('status_'+id).value;
+  const remark = document.getElementById('remark_'+id).value;
+
+  const res = await fetch('http://localhost:5001/tasks/update', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':token},
+    body: JSON.stringify({ taskId:id, remark, status })
+  });
+
+  if(res.ok){
+    alert('Task updated');
+    loadTasks();
+  } else {
+    const data = await res.json().catch(()=>({}));
+    alert(data.message || 'Failed to update task');
+  }
+}
+
+loadTasks();
+</script>
+</body>
+</html>
