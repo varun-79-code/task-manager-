@@ -81,7 +81,7 @@ async function loadTasks(){
   area.innerHTML = '';
   statusEl.innerText = 'Loading tasks…';
 
-  const res = await fetch('http://localhost:5001/tasks/mytasks', {
+  const res = await fetch('http://https-render-com-cu6h.onrender.com/tasks/mytasks', {
     headers:{'Authorization':token}
   });
 
@@ -149,7 +149,7 @@ async function updateTask(id){
   const status = document.getElementById('status_'+id).value;
   const remark = document.getElementById('remark_'+id).value;
 
-  const res = await fetch('http://localhost:5001/tasks/update', {
+  const res = await fetch('http://https-render-com-cu6h.onrender.com/tasks/update', {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':token},
     body: JSON.stringify({ taskId:id, remark, status })

@@ -213,13 +213,13 @@ function refreshView(){
 
 async function loadUsers(force=false){
   if(allUsers.length && !force) return;
-  const res = await fetch('http://localhost:5001/auth/users');
+  const res = await fetch('http://https-render-com-cu6h.onrender.com/auth/users');
   allUsers = await res.json();
 }
 
 async function loadTasks(force=false){
   if(allTasks.length && !force) return;
-  const res = await fetch('http://localhost:5001/tasks/all', {
+  const res = await fetch('http://https-render-com-cu6h.onrender.com/tasks/all', {
     headers:{'Authorization':token}
   });
   allTasks = await res.json();
@@ -345,7 +345,7 @@ async function showUsers(){
 
 async function makeAdmin(id){
   if(!confirm('Make this user an admin?')) return;
-  const res = await fetch('http://localhost:5001/auth/make-admin', {
+  const res = await fetch('http://https-render-com-cu6h.onrender.com/auth/make-admin', {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':token},
     body:JSON.stringify({id})
@@ -375,7 +375,7 @@ async function saveUserEdit(){
   const body = { name, email };
   if (password && password.trim()) body.password = password;
 
-  const res = await fetch("http://localhost:5001/auth/users/" + editingUserId, {
+  const res = await fetch("http://https-render-com-cu6h.onrender.com/auth/users/" + editingUserId, {
     method: "PUT",
     headers: { "Content-Type": "application/json", "Authorization": token },
     body: JSON.stringify(body)
@@ -497,7 +497,7 @@ async function createTask(){
     return;
   }
 
-  const res = await fetch('http://localhost:5001/tasks/create', {
+  const res = await fetch('http://https-render-com-cu6h.onrender.com/tasks/create', {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':token},
     body:JSON.stringify({ title, description, assignedTo, deadline })
@@ -575,7 +575,7 @@ async function saveEditTask(){
     return;
   }
 
-  const res = await fetch('http://localhost:5001/tasks/admin-update', {
+  const res = await fetch('http://https-render-com-cu6h.onrender.com/tasks/admin-update', {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':token},
     body:JSON.stringify({ taskId, title, description, assignedTo, status, deadline })
@@ -603,7 +603,7 @@ function closeModal(){
 }
 async function confirmModalOk(){
   if(!toDeleteTaskId) return closeModal();
-  const res = await fetch('http://localhost:5001/tasks/delete/'+toDeleteTaskId, {
+  const res = await fetch('http://https-render-com-cu6h.onrender.com/tasks/delete/'+toDeleteTaskId, {
     method:'DELETE',
     headers:{'Authorization':token}
   });
