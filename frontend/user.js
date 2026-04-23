@@ -2,7 +2,7 @@ const token = localStorage.getItem("token");
 if (!token) window.location.href = "login.html";
 
 async function loadTasks() {
-  const res = await fetch("http://http://https-render-com-cu6h.onrender.com/tasks/mytasks", {
+  const res = await fetch("https://https://https-render-com-cu6h.onrender.com/tasks/mytasks", {
     headers: { "Authorization": token }
   });
 
@@ -28,7 +28,7 @@ loadTasks();
 async function finishTask(id) {
   const remark = document.getElementById("remark_" + id).value;
 
-  await fetch("http://http://https-render-com-cu6h.onrender.com/tasks/update", {
+  await fetch("https://https://https-render-com-cu6h.onrender.com/tasks/update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

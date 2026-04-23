@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="utf-8">
   <title>My Tasks — Task Manager</title>
   <style>
@@ -81,7 +83,7 @@ async function loadTasks(){
   area.innerHTML = '';
   statusEl.innerText = 'Loading tasks…';
 
-  const res = await fetch('http://https-render-com-cu6h.onrender.com/tasks/mytasks', {
+  const res = await fetch('https://https-render-com-cu6h.onrender.com/tasks/mytasks', {
     headers:{'Authorization':token}
   });
 
@@ -149,7 +151,7 @@ async function updateTask(id){
   const status = document.getElementById('status_'+id).value;
   const remark = document.getElementById('remark_'+id).value;
 
-  const res = await fetch('http://https-render-com-cu6h.onrender.com/tasks/update', {
+  const res = await fetch('https://https-render-com-cu6h.onrender.com/tasks/update', {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':token},
     body: JSON.stringify({ taskId:id, remark, status })
